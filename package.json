@@ -1,9 +1,8 @@
 {
     "name": "resize-panes",
-    "main": "./lib/resize-panes",
+    "main": "./lib/main",
     "version": "0.1.0",
     "description": "Resize panes by enlarging or shrinking them",
-
     "repository": "https://github.com/santip/resize-panes",
     "license": "MIT",
     "engines": {
