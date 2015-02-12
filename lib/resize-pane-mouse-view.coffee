@@ -17,16 +17,21 @@ class resizePaneMouseView extends View
   @content: ->
     @div class: 'resize-panel-handle'
 
-  initialize: (panel) ->
-    this.panel = panel
+  initialize: (pane) ->
+    @pane = pane
     @handleEvents()
+
+  destroy: ->
+    @pane.remove();
+    $(this).off('mousedown');
+    $(this).remove();
 
   handleEvents: ->
     $(this).on('mousedown', (e) => @resizeStarted(e));
 
   resizeStarted: ({pageX, which}) =>
     treeViewWidth = $('.tree-view-scroller').outerWidth()
-    editorPaneWidth = $(this.panel).width()
+    editorPaneWidth = $(@pane).width()
     editorPaneOriginX = pageX
     $(document).on('mousemove', @resizePaneMouseView)
     $(document).on('mouseup', @resizeStopped)
@@ -38,4 +43,4 @@ class resizePaneMouseView extends View
   resizePaneMouseView: ({pageX, which}) =>
     return @resizeStopped() unless which is 1
     flexResizePercentage = (editorPaneWidth + (pageX - editorPaneOriginX)).toString();
-    $(this.panel).css('flex', '0 1 ' + flexResizePercentage + 'px')
+    $(@pane).css('flex', '0 1 ' + flexResizePercentage + 'px')

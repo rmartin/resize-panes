@@ -6,15 +6,22 @@ module.exports =
   resizePanel: null
 
   activate: () ->
-    @resizePaneMouseViews = []
+    resizePaneMouseViews = []
+
     @paneSubscription = atom.workspace.observePanes (pane) =>
+
       paneElement = atom.views.getView(pane)
-      if !$(paneElement).is(':only-child') && !$(paneElement).is(':last-child')
-        resizePaneMouseView = new ResizePaneMouseView(paneElement)
-        $(resizePaneMouseView).insertAfter(paneElement)
-        @resizePaneMouseViews.push(resizePaneMouseView)
-        pane.onDidDestroy => _.remove(@resizePaneMouseViews, resizePaneMouseView)
+      resizePaneMouseView = new ResizePaneMouseView(paneElement)
+      resizePanel = resizePaneMouseView
+      $(paneElement).append(resizePaneMouseView)
+
+      pane.onWillDestroyItem =>
+        $('.pane').each (i,elm) =>
+          $(elm).attr('style','')
+
+      pane.onDidDestroy =>
+        _.remove(resizePaneMouseViews, resizePaneMouseView)
 
   deactivate: ->
     @paneSubscription.dispose()
-    resizePaneMouseView.remove() for resizePaneMouseView in @resizePaneMouseViews
+    resizePaneMouseView.destroy() for resizePaneMouseView in resizePaneMouseViews
