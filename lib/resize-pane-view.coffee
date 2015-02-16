@@ -3,28 +3,28 @@ shell = require 'shell'
 {BufferedProcess, CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 
+
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
 
 
 module.exports =
-class resizePaneMouseView extends View
+class ResizePaneView extends View
   panel: null
   treeViewWidth = 0
   editorPaneWidth = 0
   editorPaneOriginX = 0
 
   @content: ->
-    @div class: 'resize-panel-handle'
+    @div class: 'resize-pane-handle'
 
   initialize: (pane) ->
     @pane = pane
     @handleEvents()
 
   destroy: ->
-    @pane.remove();
-    $(this).off('mousedown');
-    $(this).remove();
+    this.off('mousedown');
+    this.remove();
 
   handleEvents: ->
     $(this).on('mousedown', (e) => @resizeStarted(e));
@@ -33,14 +33,14 @@ class resizePaneMouseView extends View
     treeViewWidth = $('.tree-view-scroller').outerWidth()
     editorPaneWidth = $(@pane).width()
     editorPaneOriginX = pageX
-    $(document).on('mousemove', @resizePaneMouseView)
+    $(document).on('mousemove', @resizePaneView)
     $(document).on('mouseup', @resizeStopped)
 
   resizeStopped: =>
-    $(document).off('mousemove', @resizePaneMouseView)
+    $(document).off('mousemove', @resizePaneView)
     $(document).off('mouseup', @resizeStopped)
 
-  resizePaneMouseView: ({pageX, which}) =>
+  resizePaneView: ({pageX, which}) =>
     return @resizeStopped() unless which is 1
     flexResizePercentage = (editorPaneWidth + (pageX - editorPaneOriginX)).toString();
     $(@pane).css('flex', '0 1 ' + flexResizePercentage + 'px')
