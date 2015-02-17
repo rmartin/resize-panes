@@ -6,76 +6,108 @@ ResizePaneView = require './resize-pane-view'
 
 module.exports =
   isFirstLoad: true
+  paneAxisCollection: []
   resizePaneViews: []
 
+  # Package is activated on Atom start
   activate: () ->
     @subscriptions = new CompositeDisposable
 
-    # TODO: refactor this to use non-depreciated view
-    @subscriptions.add atom.workspaceView.eachPaneView (pane) =>
-      if @isFirstLoad then return
-      @insertResizePanes()
-
+    # Listen for changes to pane and attach listeners to the Pane Axis
     @subscriptions.add atom.workspace.observePanes (pane) =>
+      @subscribeToPaneAxis()
 
-      # TODO: refactor this to prevent forcing the view to be removed (pane-axis job)
-      pane.onDidDestroy =>
+  getpaneAxisCollection: ->
+    @paneAxisCollection
 
-        debugger
+  # Subscribe to changes in the Pane Axis for add / removal of childen elements.
+  # Leverages a class element to determine if subscriptions are needed for Pane Axis.
+  subscribeToPaneAxis: ->
+    _.each atom.workspace.getPanes(), (paneItem) =>
+      # Ensure we have a Pane Axis by method inspecting onDidAddChild
+      if paneItem.parent.onDidAddChild?
+        currPaneAxis = paneItem.parent
+        currPaneAxis.assignId()
 
-        view = atom.views.getView(pane)
-        view.remove()
-        @removeResizePanes()
-        @insertResizePanes()
+        # Get the current pane Axis and resize views
+        paneAxisCollection = @getpaneAxisCollection()
 
-    @isFirstLoad = false
+        # Only add a new subscription if the Pane Axis DOM doesn't exist in the collection
+        if not _.findWhere(paneAxisCollection, {'id' : currPaneAxis.id})?
 
-  getEditorPanes: ->
-    return $('.pane')
+          paneAxisSubscriptions = new CompositeDisposable
+          paneAxisCollection.push({'id': currPaneAxis.id, 'subscriptions': paneAxisSubscriptions, 'resizePanes': []})
 
-  # Determine if the pane already has a resize pane
-  hasResizePane: (paneElement) ->
-    paneElement? and paneElement.nextElementSibling? and paneElement.nextElementSibling.attributes.class.value is 'resize-pane-handle'
+          # Listen for new children being added to the view and re-calc resize panes
+          paneAxisSubscriptions.add currPaneAxis.onDidAddChild (paneElement) =>
+            @insertResizePanes(currPaneAxis)
 
-  # Insert resize pane for current view. Excluded when only one pane or last pane(s) on the right
-  insertResizePane: (paneElement) ->
-    editorPanes = @getEditorPanes()
+          # Adjust resize panes when panel is closed
+          paneAxisSubscriptions.add currPaneAxis.onDidRemoveChild (paneElement) =>
+            @removeResizePanes(currPaneAxis)
+            @insertResizePanes(currPaneAxis)
 
-    # Return if resize pane already exists
-    if @hasResizePane(paneElement)
-      return
+          # Remove all resize panes and subscriptions when pane axis is destroyed
+          paneAxisSubscriptions.add currPaneAxis.onDidDestroy (paneElement) =>
+            # Remove all resize panes within the pane axis
+            currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
+            _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+              resizePane.destroy()
+            currResizePanesInPaneAxis.subscriptions.dispose()
 
-    # console.log editorPanes
-    # If there is only one pane, nothing to do
-    # if editorPanes.length <= 1
-      # return
+  # Helper method to return the current pane element for a given pane
+  getPaneElement: (pane) ->
+    atom.views.getView(pane)
 
+  # Helper method to return all panes within the current pane axis
+  getPanesInPaneAxis: (currPaneAxis) ->
+    currPaneAxis.getPanes()
+
+  # Helper method to return all resize editors within a given pane axis
+  getResizePanesInPaneAxis: (currPaneAxis) ->
+    _.findWhere(@paneAxisCollection, {'id' : currPaneAxis.id})
+
+  # Insert resize pane after the pane element.
+  insertResizePane: (paneElement, currPaneAxis) ->
     resizePaneView = new ResizePaneView(paneElement)
-    $(resizePaneView).insertAfter(paneElement)
-    @resizePaneViews.push(resizePaneView)
+    resizePaneView.insertAfter(paneElement)
 
-  # Insert resize panes for all views. Excluded when only one pane or last pane(s) on the right
-  insertResizePanes: ->
-    editorPanes = @getEditorPanes()
+    # Add view to Pane Axis resize pane
+    currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
+    currResizePanesInPaneAxis.resizePanes.push(resizePaneView)
+
+  # Insert resize panes for all panes in a pane axis. Excluded when only one pane or last pane(s) on the right
+  insertResizePanes: (currPaneAxis) ->
+    editorPanes = @getPanesInPaneAxis(currPaneAxis)
+
     # Loop through all panes and add a resize container (except last pane column).
     # Keep track of all panes in array to avoid search for them for removal
-    editorPanes.each (i,pane) =>
-      @insertResizePane(pane)
+    _.each editorPanes, (pane) =>
+      paneElement = @getPaneElement(pane)
+      if paneElement.nextSibling? and paneElement.nextSibling.getAttribute('class') isnt 'resize-pane-handle'
+        @insertResizePane(paneElement, currPaneAxis)
 
-  # Remove all resize panes present in the view
-  removeResizePanes: ->
-    editorPanes = @getEditorPanes()
-    editorPanes.each (i,elm) =>
-      $(elm).attr('style','')
+  # Remove all resize panes present in the current pane axis
+  removeResizePanes: (currPaneAxis) ->
+    editorPanes = @getPanesInPaneAxis(currPaneAxis)
 
-    _.each @resizePaneViews, (resizePaneView) ->
-      resizePaneView.destroy();
-    @resizePaneViews = []
+    # Remove the custom fluxbox styles within the given pane axis
+    _.each editorPanes,  (pane) =>
+      paneElement = @getPaneElement(pane)
+      paneElement.setAttribute('style', '')
+
+    # Remove all resize panes within the pane axis
+    currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
+    _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+      resizePane.destroy()
+
+  removeAllResizePanes: =>
+    _.each @paneAxisCollection, (currResizePanesInPaneAxis) =>
+      _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+        resizePane.destroy()
+      currResizePanesInPaneAxis.subscriptions.dispose()
 
   # Clean-up when destorying views
   deactivate: ->
-    @removeResizePanes()
-    # @didDestoryPaneSub.dispose()
-    # @willDestorySub.dispose()
+    @removeResizeAllPanes()
     @subscriptions.dispose()
-    # @didDestoryPaneSub.dispose()
