@@ -9,19 +9,46 @@ describe "Resize Pane", ->
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
-    jasmine.attachToDOM(workspaceElement)
-
-    waitsForPromise ->
-      atom.workspace.open('sample.js')
-    waitsForPromise ->
-      atom.packages.activatePackage('resize-panes')
 
   describe ".activate()", ->
+    beforeEach ->
+      jasmine.attachToDOM(workspaceElement)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
+      waitsForPromise ->
+        atom.packages.activatePackage('resize-panes')
+
     it "does not add resize panel for single panes", ->
       expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
       expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
 
+  describe "Load with Existing Panels", ->
+    beforeEach ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      pane1 = atom.workspace.getActivePane()
+      pane2 = pane1.splitRight()
+      pane2.activate()
+      jasmine.attachToDOM(workspaceElement)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
+      waitsForPromise ->
+        atom.packages.activatePackage('resize-panes')
+
+    it "should add a resize pane to the first editor when there are two horizontal panes", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+
   describe "Pane Split Scenarios", ->
+    beforeEach ->
+      jasmine.attachToDOM(workspaceElement)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
+      waitsForPromise ->
+        atom.packages.activatePackage('resize-panes')
+
     it "should add a resize pane to the first editor when there are two horizontal panes", ->
       expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
       expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0

@@ -13,9 +13,14 @@ module.exports =
   activate: () ->
     @subscriptions = new CompositeDisposable
 
+    @subscribeToPaneAxis()
+
     # Listen for changes to pane and attach listeners to the Pane Axis
     @subscriptions.add atom.workspace.observePanes (pane) =>
-      @subscribeToPaneAxis()
+      if not @isFirstLoad
+        @subscribeToPaneAxis()
+
+    @isFirstLoad = false
 
   getpaneAxisCollection: ->
     @paneAxisCollection
@@ -25,18 +30,21 @@ module.exports =
   subscribeToPaneAxis: ->
     _.each atom.workspace.getPanes(), (paneItem) =>
       # Ensure we have a Pane Axis by method inspecting onDidAddChild
-      if paneItem.parent.onDidAddChild?
-        currPaneAxis = paneItem.parent
-        currPaneAxis.assignId()
+      currPaneAxis = paneItem.parent
+      currPaneAxis.assignId()
 
-        # Get the current pane Axis and resize views
-        paneAxisCollection = @getpaneAxisCollection()
+      # Get the current pane Axis and resize views
+      paneAxisCollection = @getpaneAxisCollection()
 
-        # Only add a new subscription if the Pane Axis DOM doesn't exist in the collection
-        if not _.findWhere(paneAxisCollection, {'id' : currPaneAxis.id})?
+      # Only add a new subscription if the Pane Axis DOM doesn't exist in the collection
+      if not _.findWhere(paneAxisCollection, {'id' : currPaneAxis.id})?
 
+        if currPaneAxis.onDidAddChild?
           paneAxisSubscriptions = new CompositeDisposable
           paneAxisCollection.push({'id': currPaneAxis.id, 'subscriptions': paneAxisSubscriptions, 'resizePanes': []})
+
+          # Bootstrap initial load
+          @insertResizePanes(currPaneAxis)
 
           # Listen for new children being added to the view and re-calc resize panes
           paneAxisSubscriptions.add currPaneAxis.onDidAddChild (paneElement) =>
