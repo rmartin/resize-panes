@@ -23,7 +23,7 @@ class ResizePaneView extends View
     @handleEvents()
 
   destroy: ->
-    this.off('mousedown');
+    this.off('mousedown')
     this.remove();
 
   handleEvents: ->
@@ -42,5 +42,5 @@ class ResizePaneView extends View
 
   resizePaneView: ({pageX, which}) =>
     return @resizeStopped() unless which is 1
-    flexResizePercentage = (editorPaneWidth + (pageX - editorPaneOriginX)).toString();
-    $(@pane).css('flex', '0 1 ' + flexResizePercentage + 'px')
+    flexResizeWidth = (editorPaneWidth + (pageX - editorPaneOriginX)).toString()
+    $(@pane).css('flex', '0 1 ' + flexResizeWidth + 'px')
