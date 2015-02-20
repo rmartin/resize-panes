@@ -25,8 +25,11 @@ module.exports =
   getpaneAxisCollection: ->
     @paneAxisCollection
 
-  # Subscribe to changes in the Pane Axis for add / removal of childen elements.
-  # Leverages a class element to determine if subscriptions are needed for Pane Axis.
+  ###
+  Subscribe to changes in the Pane Axis for add / removal of childen elements.
+  Leverages a class element to determine if subscriptions are needed for Pane
+  Axis.
+  ###
   subscribeToPaneAxis: ->
     _.each atom.workspace.getPanes(), (paneItem) =>
       # Ensure we have a Pane Axis by method inspecting onDidAddChild
@@ -36,30 +39,36 @@ module.exports =
       # Get the current pane Axis and resize views
       paneAxisCollection = @getpaneAxisCollection()
 
-      # Only add a new subscription if the Pane Axis DOM doesn't exist in the collection
-      if not _.findWhere(paneAxisCollection, {'id' : currPaneAxis.id})?
+      # Only add a new subscription if the Pane Axis DOM doesn't exist in the
+      # collection
+      if not _.findWhere(paneAxisCollection, {'id' : currPaneAxis.id} )?
 
         if currPaneAxis.onDidAddChild?
           paneAxisSubscriptions = new CompositeDisposable
-          paneAxisCollection.push({'id': currPaneAxis.id, 'subscriptions': paneAxisSubscriptions, 'resizePanes': []})
+          paneAxisCollection.push({
+            'id': currPaneAxis.id,
+            'subscriptions': paneAxisSubscriptions,
+            'resizePanes': []} )
 
           # Bootstrap initial load
           @insertResizePanes(currPaneAxis)
 
-          # Listen for new children being added to the view and re-calc resize panes
-          paneAxisSubscriptions.add currPaneAxis.onDidAddChild (paneElement) =>
+          # Listen for new children being added to the view and re-calc resize
+          # panes
+          paneAxisSubscriptions.add currPaneAxis.onDidAddChild =>
             @insertResizePanes(currPaneAxis)
 
           # Adjust resize panes when panel is closed
-          paneAxisSubscriptions.add currPaneAxis.onDidRemoveChild (paneElement) =>
+          paneAxisSubscriptions.add currPaneAxis.onDidRemoveChild =>
             @removeResizePanes(currPaneAxis)
             @insertResizePanes(currPaneAxis)
 
-          # Remove all resize panes and subscriptions when pane axis is destroyed
+          # Remove all resize panes and subscriptions when pane axis is
+          # destroyed
           paneAxisSubscriptions.add currPaneAxis.onDidDestroy (paneElement) =>
             # Remove all resize panes within the pane axis
             currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
-            _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+            _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
               resizePane.destroy()
             currResizePanesInPaneAxis.subscriptions.dispose()
 
@@ -73,7 +82,7 @@ module.exports =
 
   # Helper method to return all resize editors within a given pane axis
   getResizePanesInPaneAxis: (currPaneAxis) ->
-    _.findWhere(@paneAxisCollection, {'id' : currPaneAxis.id})
+    _.findWhere(@paneAxisCollection, {'id' : currPaneAxis.id} )
 
   # Insert resize pane after the pane element.
   insertResizePane: (paneElement, currPaneAxis) ->
@@ -84,15 +93,17 @@ module.exports =
     currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
     currResizePanesInPaneAxis.resizePanes.push(resizePaneView)
 
-  # Insert resize panes for all panes in a pane axis. Excluded when only one pane or last pane(s) on the right
+  # Insert resize panes for all panes in a pane axis. Excluded when only one
+  # pane or last pane(s) on the right
   insertResizePanes: (currPaneAxis) ->
     editorPanes = @getPanesInPaneAxis(currPaneAxis)
 
-    # Loop through all panes and add a resize container (except last pane column).
+    # Loop through all panes and add a resize container (except last pane).
     # Keep track of all panes in array to avoid search for them for removal
     _.each editorPanes, (pane) =>
       paneElement = @getPaneElement(pane)
-      if paneElement.nextSibling? and paneElement.nextSibling.getAttribute('class') isnt 'resize-pane-handle'
+      currClass = paneElement.nextSibling.getAttribute('class')
+      if paneElement.nextSibling? and currClass isnt 'resize-pane-handle'
         @insertResizePane(paneElement, currPaneAxis)
 
   # Remove all resize panes present in the current pane axis
@@ -100,18 +111,18 @@ module.exports =
     editorPanes = @getPanesInPaneAxis(currPaneAxis)
 
     # Remove the custom fluxbox styles within the given pane axis
-    _.each editorPanes,  (pane) =>
+    _.each editorPanes, (pane) =>
       paneElement = @getPaneElement(pane)
       paneElement.setAttribute('style', '')
 
     # Remove all resize panes within the pane axis
     currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
-    _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+    _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
       resizePane.destroy()
 
   removeAllResizePanes: =>
-    _.each @paneAxisCollection, (currResizePanesInPaneAxis) =>
-      _.each currResizePanesInPaneAxis.resizePanes, (resizePane) =>
+    _.each @paneAxisCollection, (currResizePanesInPaneAxis) ->
+      _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
         resizePane.destroy()
       currResizePanesInPaneAxis.subscriptions.dispose()
 
