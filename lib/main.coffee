@@ -102,9 +102,10 @@ module.exports =
     # Keep track of all panes in array to avoid search for them for removal
     _.each editorPanes, (pane) =>
       paneElement = @getPaneElement(pane)
-      currClass = paneElement.nextSibling.getAttribute('class')
-      if paneElement.nextSibling? and currClass isnt 'resize-pane-handle'
-        @insertResizePane(paneElement, currPaneAxis)
+      if paneElement.nextSibling?
+        currClass = paneElement.nextSibling.getAttribute('class')
+        if currClass isnt 'resize-pane-handle'
+          @insertResizePane(paneElement, currPaneAxis)
 
   # Remove all resize panes present in the current pane axis
   removeResizePanes: (currPaneAxis) ->
