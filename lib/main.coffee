@@ -56,7 +56,12 @@ module.exports =
           # Listen for new children being added to the view and re-calc resize
           # panes
           paneAxisSubscriptions.add currPaneAxis.onDidAddChild =>
-            @insertResizePanes(currPaneAxis)
+            # skip vertical panes for now
+            if atom.views.getView(currPaneAxis).getAttribute('class').indexOf('vertical') is -1
+              @insertResizePanes(currPaneAxis)
+            # Adjust position of resize element if swapped by insert
+            @adjustResizePane(currPaneAxis.getParent())
+
 
           # Adjust resize panes when panel is closed
           paneAxisSubscriptions.add currPaneAxis.onDidRemoveChild =>
@@ -72,6 +77,10 @@ module.exports =
               resizePane.destroy()
             currResizePanesInPaneAxis.subscriptions.dispose()
 
+            # debugger
+            # Adjust position of resize element if swapped by insert
+            @adjustResizePane(currPaneAxis.getParent())
+
   # Helper method to return the current pane element for a given pane
   getPaneElement: (pane) ->
     atom.views.getView(pane)
@@ -83,6 +92,19 @@ module.exports =
   # Helper method to return all resize editors within a given pane axis
   getResizePanesInPaneAxis: (currPaneAxis) ->
     _.findWhere(@paneAxisCollection, {'id' : currPaneAxis.id} )
+
+  adjustResizePane: (currPaneAxis) ->
+    editorPanes = currPaneAxis.children
+
+    _.each editorPanes, (currPane) ->
+      currPaneElm = atom.views.getView(currPane)
+
+      if currPaneElm.nextSibling? and currPaneElm.previousSibling?
+        nextSibling = currPaneElm.nextSibling
+        previousSibling = currPaneElm.previousSibling
+
+        if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1
+          currPaneElm.parentElement.insertBefore(nextSibling, currPaneElm)
 
   # Insert resize pane after the pane element.
   insertResizePane: (paneElement, currPaneAxis) ->
