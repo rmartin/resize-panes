@@ -55,12 +55,17 @@ module.exports =
 
           # Listen for new children being added to the view and re-calc resize
           # panes
-          paneAxisSubscriptions.add currPaneAxis.onDidAddChild =>
+          paneAxisSubscriptions.add currPaneAxis.onDidAddChild (paneElement) =>
+
+            if paneElement.child.hasClass? and paneElement.child.hasClass('resize-pane-handle')
+              return
+
+
             # skip vertical panes for now
             if atom.views.getView(currPaneAxis).getAttribute('class').indexOf('vertical') is -1
               @insertResizePanes(currPaneAxis)
             # Adjust position of resize element if swapped by insert
-            @adjustResizePane(currPaneAxis.getParent())
+            # @adjustResizePane(currPaneAxis.getParent())
 
 
           # Adjust resize panes when panel is closed
@@ -79,7 +84,7 @@ module.exports =
 
             # debugger
             # Adjust position of resize element if swapped by insert
-            @adjustResizePane(currPaneAxis.getParent())
+            # @adjustResizePane(currPaneAxis.getParent())
 
   # Helper method to return the current pane element for a given pane
   getPaneElement: (pane) ->
@@ -93,23 +98,25 @@ module.exports =
   getResizePanesInPaneAxis: (currPaneAxis) ->
     _.findWhere(@paneAxisCollection, {'id' : currPaneAxis.id} )
 
-  adjustResizePane: (currPaneAxis) ->
-    editorPanes = currPaneAxis.children
-
-    _.each editorPanes, (currPane) ->
-      currPaneElm = atom.views.getView(currPane)
-
-      if currPaneElm.nextSibling? and currPaneElm.previousSibling?
-        nextSibling = currPaneElm.nextSibling
-        previousSibling = currPaneElm.previousSibling
-
-        if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1
-          currPaneElm.parentElement.insertBefore(nextSibling, currPaneElm)
+  # adjustResizePane: (currPaneAxis) ->
+  #   editorPanes = currPaneAxis.children
+  #
+  #   _.each editorPanes, (currPane) ->
+  #     currPaneElm = atom.views.getView(currPane)
+  #
+  #     if currPaneElm.nextSibling? and currPaneElm.previousSibling?
+  #       nextSibling = currPaneElm.nextSibling
+  #       previousSibling = currPaneElm.previousSibling
+  #
+  #       if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1
+  #         currPaneElm.parentElement.insertBefore(nextSibling, currPaneElm)
 
   # Insert resize pane after the pane element.
   insertResizePane: (paneElement, currPaneAxis) ->
+
     resizePaneView = new ResizePaneView(paneElement)
-    resizePaneView.insertAfter(paneElement)
+    debugger
+    currPaneAxis.insertChildAfter(paneElement, resizePaneView)
 
     # Add view to Pane Axis resize pane
     currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
