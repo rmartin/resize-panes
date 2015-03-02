@@ -149,7 +149,11 @@ module.exports =
         resizePane.destroy()
       currResizePanesInPaneAxis.subscriptions.dispose()
 
+  disposeAllResizePanes: =>
+    _.each @paneAxisCollection, (currResizePanesInPaneAxis) ->
+      currResizePanesInPaneAxis.subscriptions.dispose()
+
   # Clean-up when destorying views
   deactivate: ->
-    @removeResizeAllPanes()
+    @disposeAllResizePanes()
     @subscriptions.dispose()
