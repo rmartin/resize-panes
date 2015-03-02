@@ -15,8 +15,6 @@ describe "Resize Pane", ->
       jasmine.attachToDOM(workspaceElement)
 
       waitsForPromise ->
-        atom.workspace.open('sample.js')
-      waitsForPromise ->
         atom.packages.activatePackage('resize-panes')
 
     it "does not add resize panel for single panes", ->
@@ -32,8 +30,6 @@ describe "Resize Pane", ->
       jasmine.attachToDOM(workspaceElement)
 
       waitsForPromise ->
-        atom.workspace.open('sample.js')
-      waitsForPromise ->
         atom.packages.activatePackage('resize-panes')
 
     it "should add a resize pane to the first editor when there are two horizontal panes", ->
@@ -45,82 +41,98 @@ describe "Resize Pane", ->
       jasmine.attachToDOM(workspaceElement)
 
       waitsForPromise ->
-        atom.workspace.open('sample.js')
-      waitsForPromise ->
         atom.packages.activatePackage('resize-panes')
 
-    it "should add a resize pane to the first editor when there are two horizontal panes", ->
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
-      expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
+    describe "Horizontal Split Panes", ->
 
-      pane1 = atom.workspace.getActivePane()
-      pane2 = pane1.splitRight()
-      pane2.activate()
-      jasmine.attachToDOM(workspaceElement)
+      it "should add one resize pane when there are two panes", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight()
+        pane2.activate()
+        jasmine.attachToDOM(workspaceElement)
 
-    it "should add a resize pane to the first and second editor when there are three horizontal panes", ->
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
-      expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
 
-      pane1 = atom.workspace.getActivePane()
-      pane2 = pane1.splitRight()
-      pane2.activate()
-      jasmine.attachToDOM(workspaceElement)
+      it "should add two resize panes when there are three horizontal panes", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight()
+        pane2.activate()
+        jasmine.attachToDOM(workspaceElement)
 
-      pane3 = pane2.splitRight()
-      pane3.activate()
-      jasmine.attachToDOM(workspaceElement)
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 2
+        pane3 = pane2.splitRight()
+        pane3.activate()
+        jasmine.attachToDOM(workspaceElement)
 
-    it "should add a resize pane to the first editor when there are two horizontal panes with one split vertical", ->
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
-      expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 2
 
-      pane1 = atom.workspace.getActivePane()
-      pane2 = pane1.splitRight()
-      pane2.activate()
-      jasmine.attachToDOM(workspaceElement)
+    describe "Horizontal Split With Virtual Split Panes", ->
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+      it "should add a one resize pane when there are two h panes with one split v", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
 
-      pane3 = pane2.splitDown()
-      pane3.activate()
-      jasmine.attachToDOM(workspaceElement)
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight()
+        pane2.activate()
+        jasmine.attachToDOM(workspaceElement)
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
 
-    it "should add a resize pane to the first editor when there are two horizontal panes with one split vertical after closing the bottom vertical pane", ->
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
-      expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
+        pane3 = pane2.splitDown()
+        pane3.activate()
+        jasmine.attachToDOM(workspaceElement)
 
-      pane1 = atom.workspace.getActivePane()
-      pane2 = pane1.splitRight()
-      pane2.activate()
-      jasmine.attachToDOM(workspaceElement)
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
 
-      pane3 = pane2.splitDown()
-      pane3.activate()
-      jasmine.attachToDOM(workspaceElement)
+      it "should add a two resize pane when there are three h panes with one split v", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitRight()
+        pane4 = pane2.splitDown()
+        jasmine.attachToDOM(workspaceElement)
 
-      pane3.close()
-      jasmine.attachToDOM(workspaceElement)
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 4
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.pane')[0].nextSibling.getAttribute('class')).toBe "resize-pane-handle"
+        expect(workspaceElement.querySelectorAll('.pane')[0].nextSibling.nextSibling.getAttribute('class')).toBe "vertical pane-column"
 
-      expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
-      expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
-      expect(workspaceElement.querySelectorAll('.pane')[0].nextSibling.getAttribute('class')).toBe "resize-pane-handle"
+
+    describe "Horizontal Split With Virtual Split Panes When Closing", ->
+
+      it "should add two resize panes when there are two h panes with one split v after closing the bottom vertical pane", ->
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane > .resize-pane-handle').length).toBe 0
+
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight()
+        pane2.activate()
+        pane3 = pane2.splitDown()
+        pane3.activate()
+        jasmine.attachToDOM(workspaceElement)
+
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 3
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+
+        pane3.close()
+        jasmine.attachToDOM(workspaceElement)
+
+        expect(workspaceElement.querySelectorAll('.pane').length).toBe 2
+        expect(workspaceElement.querySelectorAll('.resize-pane-handle').length).toBe 1
+        expect(workspaceElement.querySelectorAll('.pane')[0].nextSibling.getAttribute('class')).toBe "resize-pane-handle"

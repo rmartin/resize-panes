@@ -103,7 +103,7 @@ module.exports =
         nextSibling = currPaneElm.nextSibling
         previousSibling = currPaneElm.previousSibling
 
-        if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1
+        if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1 and previousSibling.getAttribute('class').indexOf('resize-pane-handle') is -1
           currPaneElm.parentElement.insertBefore(nextSibling, currPaneElm)
 
   # Insert resize pane after the pane element.
