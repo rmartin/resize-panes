@@ -57,8 +57,8 @@ module.exports =
           # panes
           paneAxisSubscriptions.add currPaneAxis.onDidAddChild =>
             # skip vertical panes for now
-            if atom.views.getView(currPaneAxis).getAttribute('class').indexOf('vertical') is -1
-              @insertResizePanes(currPaneAxis)
+            # if atom.views.getView(currPaneAxis).getAttribute('class').indexOf('vertical') is -1
+            @insertResizePanes(currPaneAxis)
             # Adjust position of resize element if swapped by insert
             @adjustResizePane(currPaneAxis.getParent())
 
@@ -77,7 +77,6 @@ module.exports =
               resizePane.destroy()
             currResizePanesInPaneAxis.subscriptions.dispose()
 
-            # debugger
             # Adjust position of resize element if swapped by insert
             @adjustResizePane(currPaneAxis.getParent())
 
@@ -108,7 +107,7 @@ module.exports =
 
   # Insert resize pane after the pane element.
   insertResizePane: (paneElement, currPaneAxis) ->
-    resizePaneView = new ResizePaneView(paneElement)
+    resizePaneView = new ResizePaneView(paneElement, currPaneAxis.orientation)
     resizePaneView.insertAfter(paneElement)
 
     # Add view to Pane Axis resize pane
@@ -126,7 +125,7 @@ module.exports =
       paneElement = @getPaneElement(pane)
       if paneElement.nextSibling?
         currClass = paneElement.nextSibling.getAttribute('class')
-        if currClass isnt 'resize-pane-handle'
+        if currClass.indexOf('resize-pane-handle') is -1
           @insertResizePane(paneElement, currPaneAxis)
 
   # Remove all resize panes present in the current pane axis

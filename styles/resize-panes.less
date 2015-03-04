@@ -1,10 +1,14 @@
 @import "ui-variables";
 .panes {
-    .horizontal {
-        .resize-pane-handle {
-            position: relative;
-            width: 6px;
-            cursor: col-resize;
-        }
+    .resize-pane-handle.horizontal {
+        position: relative;
+        width: 6px;
+        cursor: col-resize;
+    }
+
+    .resize-pane-handle.vertical {
+        position: relative;
+        height: 6px;
+        cursor: row-resize;
     }
 }

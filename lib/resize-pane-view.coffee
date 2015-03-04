@@ -11,15 +11,17 @@ toggleConfig = (keyPath) ->
 module.exports =
 class ResizePaneView extends View
   panel: null
-  treeViewWidth = 0
-  editorPaneWidth = 0
-  editorPaneOriginX = 0
+  orientation: null
+  editorPaneDimension = 0
+  editorPaneOrigin = 0
 
   @content: ->
     @div class: 'resize-pane-handle'
 
-  initialize: (pane) ->
+  initialize: (pane, orientation) ->
     @pane = pane
+    @orientation = orientation
+    this.element.setAttribute('class', this.element.getAttribute('class') + ' ' + orientation)
     @handleEvents()
 
   destroy: ->
@@ -29,10 +31,13 @@ class ResizePaneView extends View
   handleEvents: ->
     $(this).on('mousedown', (e) => @resizeStarted(e));
 
-  resizeStarted: ({pageX, which}) =>
-    treeViewWidth = $('.tree-view-scroller').outerWidth()
-    editorPaneWidth = $(@pane).width()
-    editorPaneOriginX = pageX
+  resizeStarted: ({pageX, pageY, which}) =>
+    if @orientation is "horizontal"
+      editorPaneDimension = $(@pane).width()
+      editorPaneOrigin = pageX
+    else
+      editorPaneDimension = $(@pane).height()
+      editorPaneOrigin = pageY
     $(document).on('mousemove', @resizePaneView)
     $(document).on('mouseup', @resizeStopped)
 
@@ -40,7 +45,11 @@ class ResizePaneView extends View
     $(document).off('mousemove', @resizePaneView)
     $(document).off('mouseup', @resizeStopped)
 
-  resizePaneView: ({pageX, which}) =>
+  resizePaneView: ({pageX, pageY, which}) =>
     return @resizeStopped() unless which is 1
-    flexResizeWidth = (editorPaneWidth + (pageX - editorPaneOriginX)).toString()
-    $(@pane).css('flex', '0 1 ' + flexResizeWidth + 'px')
+    if @orientation is "horizontal"
+      flexResizeSize = (editorPaneDimension + (pageX - editorPaneOrigin)).toString()
+      $(@pane).css('flex', '0 1 ' + flexResizeSize + 'px')
+    else
+      flexResizeSize = (editorPaneDimension + (pageY - editorPaneOrigin)).toString()
+      $(@pane).css('flex', '0 1 ' + flexResizeSize + 'px')
