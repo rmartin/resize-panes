@@ -52,6 +52,9 @@ module.exports =
 
           # Bootstrap initial load
           @insertResizePanes(currPaneAxis)
+          if currPaneAxis.getParent().children?
+            @adjustResizePane(currPaneAxis.getParent())
+            # @insertResizePanes(currPaneAxis.getParent())
 
           # Listen for new children being added to the view and re-calc resize
           # panes
@@ -86,7 +89,7 @@ module.exports =
 
   # Helper method to return all panes within the current pane axis
   getPanesInPaneAxis: (currPaneAxis) ->
-    currPaneAxis.getPanes()
+    currPaneAxis.getChildren()
 
   # Helper method to return all resize editors within a given pane axis
   getResizePanesInPaneAxis: (currPaneAxis) ->
@@ -105,6 +108,13 @@ module.exports =
         if nextSibling.getAttribute('class').indexOf('resize-pane-handle') isnt -1 and previousSibling.getAttribute('class').indexOf('resize-pane-handle') is -1
           currPaneElm.parentElement.insertBefore(nextSibling, currPaneElm)
 
+    currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
+
+    if currResizePanesInPaneAxis?
+      _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
+        if resizePane.element.previousSibling?
+          resizePane.setPane(atom.views.getView(resizePane.element.previousSibling))
+
   # Insert resize pane after the pane element.
   insertResizePane: (paneElement, currPaneAxis) ->
     resizePaneView = new ResizePaneView(paneElement, currPaneAxis.orientation)
@@ -112,7 +122,8 @@ module.exports =
 
     # Add view to Pane Axis resize pane
     currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
-    currResizePanesInPaneAxis.resizePanes.push(resizePaneView)
+    if currResizePanesInPaneAxis?
+      currResizePanesInPaneAxis.resizePanes.push(resizePaneView)
 
   # Insert resize panes for all panes in a pane axis. Excluded when only one
   # pane or last pane(s) on the right
@@ -139,8 +150,9 @@ module.exports =
 
     # Remove all resize panes within the pane axis
     currResizePanesInPaneAxis = @getResizePanesInPaneAxis(currPaneAxis)
-    _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
-      resizePane.destroy()
+    if currResizePanesInPaneAxis?
+      _.each currResizePanesInPaneAxis.resizePanes, (resizePane) ->
+        resizePane.destroy()
 
   removeAllResizePanes: =>
     _.each @paneAxisCollection, (currResizePanesInPaneAxis) ->

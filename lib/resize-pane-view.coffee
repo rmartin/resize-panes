@@ -3,10 +3,8 @@ shell = require 'shell'
 {BufferedProcess, CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 
-
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
-
 
 module.exports =
 class ResizePaneView extends View
@@ -26,7 +24,10 @@ class ResizePaneView extends View
 
   destroy: ->
     this.off('mousedown')
-    this.remove();
+    this.remove()
+
+  setPane: (pane) ->
+    @pane = pane
 
   handleEvents: ->
     $(this).on('mousedown', (e) => @resizeStarted(e));
@@ -47,9 +48,6 @@ class ResizePaneView extends View
 
   resizePaneView: ({pageX, pageY, which}) =>
     return @resizeStopped() unless which is 1
-    if @orientation is "horizontal"
-      flexResizeSize = (editorPaneDimension + (pageX - editorPaneOrigin)).toString()
-      $(@pane).css('flex', '0 1 ' + flexResizeSize + 'px')
-    else
-      flexResizeSize = (editorPaneDimension + (pageY - editorPaneOrigin)).toString()
-      $(@pane).css('flex', '0 1 ' + flexResizeSize + 'px')
+    resizeDimension = if @orientation is "horizontal" then pageX else pageY
+    # console.log @pane
+    $(@pane).css('flex', '0 1 ' + (editorPaneDimension + (resizeDimension - editorPaneOrigin)).toString() + 'px')
